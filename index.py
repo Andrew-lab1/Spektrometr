@@ -1203,7 +1203,7 @@ class SpektrometerApp(CustomTk):
             bg='black',
             highlightthickness=0
         )
-        self.spectrum_image_canvas.pack()
+        self.spectrum_image_canvas.pack() 
         
         # Use 3/5 of screen width and adapt height to available space
         screen_width = self.winfo_screenwidth()

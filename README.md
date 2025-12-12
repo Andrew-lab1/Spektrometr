@@ -5,11 +5,16 @@ Aplikacja do kontroli spektrometru z kamerą PixeLink i silnikami sterowymi.
 ## Wymagania systemowe
 
 - **Python 3.7+**
-- **Windows 10/11** (dla PixeLink SDK)
-- **PixeLink SDK** (opcjonalnie, dla pełnej funkcjonalności kamery)
+- **System operacyjny**: 
+  - ✅ **Windows 10/11** (pełna funkcjonalność z PixeLink SDK)
+  - ✅ **Linux** (Ubuntu 20.04+, Debian, Fedora) - **NOWE!**
+- **PixeLink SDK** (opcjonalnie, tylko dla Windows - dla pełnej funkcjonalności kamery spektrometrycznej)
+
+> **UWAGA**: Aplikacja została zmodyfikowana i działa na systemach Linux! Zobacz [LINUX_COMPATIBILITY.md](LINUX_COMPATIBILITY.md) dla szczegółów.
 
 ## Szybka instalacja
 
+### Windows
 ### 1. Sklonuj/pobierz projekt
 ```bash
 git clone <repository-url>
@@ -29,6 +34,27 @@ python -m pip install -r requirements.txt
 ```bash
 python index.py
 ```
+
+### Linux
+### 1. Zainstaluj zależności systemowe
+```bash
+sudo apt-get update
+sudo apt-get install python3 python3-pip python3-tk python3-venv
+```
+
+### 2. Utwórz środowisko wirtualne i zainstaluj pakiety
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 3. Uruchom aplikację
+```bash
+python index.py
+```
+
+> **Szczegóły dla Linux**: Zobacz [LINUX_COMPATIBILITY.md](LINUX_COMPATIBILITY.md)
 
 ## Ręczna instalacja
 
