@@ -654,12 +654,21 @@ class CustomToplevel(Toplevel, CustomWindow):
         CustomWindow.__init__(self, *args, **kwargs)
         self.overrideredirect(True)
         self.config(bg=self.DGRAY, highlightthickness=0)
+    def confirm(self, message):
+        """Show confirmation dialog"""
+        Label(self.window, text=message, bg=self.DGRAY, fg='white', font=('Arial', 10)).pack(pady=10)
+        yes = CButton(self.window, text="Yes", width=10, command=lambda: True)
+        no = CButton(self.window, text="No", width=10, command=lambda: False)
+        if yes:
+            return True
+        else:
+            return False
 
 
 class HeatMapWindow(CustomToplevel):
     """3D heatmap visualization window"""
     
-    def __init__(self, parent, measurement_index, data, image):
+    def __init__(self, parent, measurement_index, data):
         CustomToplevel.__init__(self, parent)
         self.title(f'Measurement {measurement_index}')  # Changed from set_title to title
         
@@ -678,6 +687,7 @@ class HeatMapWindow(CustomToplevel):
         self.geometry(f'{window_width}x{window_height}+{x}+{y}')
         print(f"HeatMap window created: {window_width}x{window_height}")
         
+        # Ensure data is a numpy array of objects and normalize spectrum lengths
         self.data = np.array(data, dtype=object)
         self.parent = parent
         self._setup_data()
@@ -686,17 +696,25 @@ class HeatMapWindow(CustomToplevel):
     
     def _setup_data(self):
         """Setup data for visualization"""
-        xs = sorted(set([row[0] for row in self.data]))
-        ys = sorted(set([row[1] for row in self.data]))
+        # Extract unique sorted coordinates
+        xs = sorted({row[0] for row in self.data})
+        ys = sorted({row[1] for row in self.data})
         nx, ny = len(xs), len(ys)
         
-        spectrum_len = len(self.data[0][2])
-        self.cube = np.zeros((nx, ny, spectrum_len))
+        # Use length of first spectrum as reference and trim/ignore others if longer
+        first_len = len(self.data[0][2]) if len(self.data) > 0 else 0
+        spectrum_len = first_len
+        self.cube = np.zeros((nx, ny, spectrum_len), dtype=float)
         
+        # Fill cube; if any spectrum is longer, truncate; if shorter, pad with zeros
         for row in self.data:
             ix = xs.index(row[0])
             iy = ys.index(row[1])
-            self.cube[ix, iy, :] = row[2]
+            spec = np.asarray(row[2], dtype=float)
+            if spec.size >= spectrum_len:
+                self.cube[ix, iy, :] = spec[:spectrum_len]
+            else:
+                self.cube[ix, iy, :spec.size] = spec
         
         self.current_lambda = 0
         
@@ -1203,7 +1221,7 @@ class SpektrometerApp(CustomTk):
             bg='black',
             highlightthickness=0
         )
-        self.spectrum_image_canvas.pack() 
+        self.spectrum_image_canvas.pack()
         
         # Use 3/5 of screen width and adapt height to available space
         screen_width = self.winfo_screenwidth()
@@ -2626,7 +2644,7 @@ class SpektrometerApp(CustomTk):
 
                     def ask_confirm():
                         try:
-                            result = self._confirm_area()
+                            result = CustomToplevel.confirm(self, "Is the scanned area correct?")
                         except Exception:
                             result = False
                         confirm_result['ok'] = bool(result)
@@ -3129,7 +3147,7 @@ class SpektrometerApp(CustomTk):
             filename = self.measurement_files[measurement_index]
             # Load data only when needed
             measurement_data = self._load_measurement_data_on_demand(filename)
-            HeatMapWindow(self, measurement_index + 1, measurement_data, self.current_image)
+            HeatMapWindow(self, measurement_index + 1, measurement_data)
 
     def move_motor(self, direction):
         """Manual motor movement function"""
